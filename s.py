@@ -29,7 +29,7 @@ MODE_STDBY = 0x01
 MODE_RX_CONTINUOUS = 0x05
 
 class LoRaReceiver:
-    def _init_(self, verbose=False):
+    def __init__(self, verbose=False):
         self.verbose = verbose
         self.spi = None
 
@@ -91,7 +91,7 @@ class LoRaReceiver:
         self.write_register(REG_FRF_LSB, freq & 0xFF)
 
     def receive(self):
-    # Wait for the IRQ pin to be HIGH indicating data is ready to read
+        # Wait for the IRQ pin to be HIGH indicating data is ready to read
         while GPIO.input(LORA_IRQ_PIN) == GPIO.LOW:
             time.sleep(0.01)  # Sleep a bit to avoid busy-waiting
 
@@ -113,38 +113,37 @@ class LoRaReceiver:
             # Clear RxDone flag
             self.write_register(REG_IRQ_FLAGS, 0xFF)
             return bytes(message).decode('utf-8', 'ignore')
-    
-    # Check for CRC errors
+
+        # Check for CRC errors
         if irq_flags & 0x20:  # Check for CRC error flag
             print("CRC error detected")
-        
-        return None
 
+        return None
 
     def close(self):
         if self.spi:
             self.spi.close()
         GPIO.cleanup()
 
-    def main():
-        try:
-            # Buat instance LoRaReceiver
-            lora = LoRaReceiver(verbose=True)
-            # Inisialisasi LoRa
-            lora.init()
+def main():
+    try:
+        # Buat instance LoRaReceiver
+        lora = LoRaReceiver(verbose=True)
+        # Inisialisasi LoRa
+        lora.init()
 
-            print("Menunggu pesan...")
-            while True:
-                # Terima pesan
-                message = lora.receive()
-                if message:
-                    print(f"Pesan diterima: {message}")
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("\nProgram dihentikan oleh user")
-        finally:
-            print("\nMembersihkan...")
-            lora.close()
+        print("Menunggu pesan...")
+        while True:
+            # Terima pesan
+            message = lora.receive()
+            if message:
+                print(f"Pesan diterima: {message}")
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nProgram dihentikan oleh user")
+    finally:
+        print("\nMembersihkan...")
+        lora.close()
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     main()
