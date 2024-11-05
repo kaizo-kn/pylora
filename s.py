@@ -113,17 +113,17 @@ class LoRaReceiver:
             # Clear RxDone flag
             self.write_register(REG_IRQ_FLAGS, 0xFF)
             return bytes(message).decode('utf-8', 'ignore')
-
+        
         # Check for CRC errors
         if irq_flags & 0x20:  # Check for CRC error flag
             print("CRC error detected")
-
+        
         return None
 
-    def close(self):
-        if self.spi:
-            self.spi.close()
-        GPIO.cleanup()
+        def close(self):
+            if self.spi:
+                self.spi.close()
+            GPIO.cleanup()
 
 def main():
     try:
