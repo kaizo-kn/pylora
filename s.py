@@ -92,8 +92,8 @@ class LoRaReceiver:
 
     def receive(self):
         # Wait for the IRQ pin to be HIGH indicating data is ready to read
-        while GPIO.input(LORA_IRQ_PIN) == GPIO.LOW:
-            time.sleep(0.01)  # Sleep a bit to avoid busy-waiting
+        # while GPIO.input(LORA_IRQ_PIN) == GPIO.LOW:
+        #     time.sleep(0.01)  # Sleep a bit to avoid busy-waiting
 
         # Check IRQ flags to see if data is ready
         irq_flags = self.read_register(REG_IRQ_FLAGS)
