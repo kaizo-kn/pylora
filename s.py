@@ -126,25 +126,25 @@ class LoRaReceiver:
             self.spi.close()
         GPIO.cleanup()
 
-def main():
-    try:
-        # Buat instance LoRaReceiver
-        lora = LoRaReceiver(verbose=True)
-        # Inisialisasi LoRa
-        lora.init()
+    def main():
+        try:
+            # Buat instance LoRaReceiver
+            lora = LoRaReceiver(verbose=True)
+            # Inisialisasi LoRa
+            lora.init()
 
-        print("Menunggu pesan...")
-        while True:
-            # Terima pesan
-            message = lora.receive()
-            if message:
-                print(f"Pesan diterima: {message}")
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nProgram dihentikan oleh user")
-    finally:
-        print("\nMembersihkan...")
-        lora.close()
+            print("Menunggu pesan...")
+            while True:
+                # Terima pesan
+                message = lora.receive()
+                if message:
+                    print(f"Pesan diterima: {message}")
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("\nProgram dihentikan oleh user")
+        finally:
+            print("\nMembersihkan...")
+            lora.close()
 
 if __name__ == "_main_":
     main()
