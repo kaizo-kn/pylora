@@ -91,21 +91,35 @@ class LoRaReceiver:
         self.write_register(REG_FRF_LSB, freq & 0xFF)
 
     def receive(self):
-        # Periksa apakah ada data yang diterima
+    # Wait for the IRQ pin to be HIGH indicating data is ready to read
+        while GPIO.input(LORA_IRQ_PIN) == GPIO.LOW:
+            time.sleep(0.01)  # Sleep a bit to avoid busy-waiting
+
+        # Check IRQ flags to see if data is ready
         irq_flags = self.read_register(REG_IRQ_FLAGS)
+        print(f"IRQ flags: {irq_flags}")  # Keep this for debugging
+
         if irq_flags & 0x40:  # RxDone flag
-            # Set pointer FIFO ke alamat yang diterima
+            # Set pointer FIFO to the received address
             self.write_register(REG_FIFO_ADDR_PTR, self.read_register(REG_FIFO_RX_BASE_ADDR))
-            # Jumlah byte yang diterima
+            # Number of bytes received
             packet_length = self.read_register(REG_RX_NB_BYTES)
-            # Baca data dari FIFO
+            print(f"Received packet length: {packet_length}")  # Add this line
+
+            # Read data from FIFO
             message = []
             for _ in range(packet_length):
                 message.append(self.read_register(REG_FIFO))
-            # Bersihkan flag RxDone
+            # Clear RxDone flag
             self.write_register(REG_IRQ_FLAGS, 0xFF)
             return bytes(message).decode('utf-8', 'ignore')
+    
+    # Check for CRC errors
+        if irq_flags & 0x20:  # Check for CRC error flag
+            print("CRC error detected")
+        
         return None
+
 
     def close(self):
         if self.spi:
