@@ -112,6 +112,51 @@ class LoRaTransmitter:
         level = max(2, min(17, level))
         self.write_register(REG_PA_CONFIG, 0x80 | (level - 2))
 
+    def send_message(self, message):
+        try:
+            # Convert message to bytes if it's a string
+            if isinstance(message, str):
+                message = message.encode()
+            
+            # Calculate the payload length
+            payload_length = len(message)
+            
+            # Put the module in standby mode
+            self.standby()
+            
+            # Clear all IRQ flags
+            self.write_register(REG_IRQ_FLAGS, 0xFF)
+            
+            # Set up the FIFO
+            self.write_register(REG_FIFO_TX_BASE_ADDR, 0)  # Base address for transmit
+            self.write_register(REG_FIFO_ADDR_PTR, 0)      # Reset FIFO pointer
+            
+            # Write the message bytes to the FIFO register
+            for byte in message:
+                self.write_register(REG_FIFO, byte)
+            
+            # Set the payload length in the REG_PAYLOAD_LENGTH register
+            self.write_register(REG_PAYLOAD_LENGTH, payload_length)
+            
+            # Start transmission by setting the device to TX mode
+            self.write_register(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX)
+            
+            # Wait for the TxDone flag to indicate that transmission is complete
+            start_time = time.time()
+            while time.time() - start_time < 2:
+                if self.read_register(REG_IRQ_FLAGS) & 0x08:  # TxDone flag
+                    # Clear all IRQ flags after successful transmission
+                    self.write_register(REG_IRQ_FLAGS, 0xFF)
+                    return True
+                time.sleep(0.5)
+            
+            return False
+
+        except Exception as e:
+            print(f"[{self.get_timestamp()}] Error sending message: {str(e)}")
+            return False
+
+
     def transmit(self):
         print(f"[{self.get_timestamp()}] LoRa Transmitter aktif. Tekan Ctrl+C untuk berhenti.")
         try:
@@ -140,31 +185,6 @@ class LoRaTransmitter:
         except KeyboardInterrupt:
             print(f"\n[{self.get_timestamp()}] Program dihentikan")
 
-
-
-    def transmit(self):
-        print(f"[{self.get_timestamp()}] LoRa Transmitter aktif. Tekan Ctrl+C untuk berhenti.")
-        try:
-            while True:
-                timestamp = self.get_timestamp()
-                message = f"{self.counter} pesan terkirim dari Lora Transmitter"
-                print(f"\n[{timestamp}] Mengirim: {message}")
-                
-                if self.send_message(message):
-                    print(f"[{self.get_timestamp()}] Pesan terkirim!")
-                else:
-                    print(f"[{self.get_timestamp()}] Gagal mengirim")
-                
-                self.counter += 1
-                time.sleep(1)
-
-        except KeyboardInterrupt:
-            print(f"\n[{self.get_timestamp()}] Program dihentikan")
-
-    def close(self):
-        if self.spi:
-            self.spi.close()
-        GPIO.cleanup()
 
 def main():
     lora = LoRaTransmitter()
