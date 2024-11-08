@@ -135,7 +135,7 @@ class LoRaTransmitter:
             for byte in message:
                 self.write_register(REG_FIFO, byte)
             
-            self.write_register(REG_PAYLOAD_LENGTH, 39)
+            self.write_register(REG_PAYLOAD_LENGTH, 123)
             
             # Start transmission by setting the device to TX mode
             self.write_register(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX)
