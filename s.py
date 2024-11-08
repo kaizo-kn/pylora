@@ -96,7 +96,7 @@ class LoRaReceiver:
     def handle_interrupt(self):
         print("Interrupt terdeteksi!")
         self.write_register(REG_FIFO_ADDR_PTR, 0)
-        payload_length = self.read_register(REG_PAYLOAD_LENGTH)
+        payload_length = self.read_register(39)
         print(f"Panjang payload: {payload_length}")
 
         message = bytearray()
