@@ -135,7 +135,6 @@ class LoRaTransmitter:
             for byte in message:
                 self.write_register(REG_FIFO, byte)
             
-            # Set the payload length in the REG_PAYLOAD_LENGTH register
             self.write_register(REG_PAYLOAD_LENGTH, 39)
             
             # Start transmission by setting the device to TX mode
@@ -171,7 +170,7 @@ class LoRaTransmitter:
                 
                 # Set payload length based on the byte-length of the encoded message
                 payload_length = len(message)
-                self.write_register(REG_PAYLOAD_LENGTH, payload_length)
+                self.write_register(REG_PAYLOAD_LENGTH, 37)
                 
                 # Send the message
                 if self.send_message(message):
