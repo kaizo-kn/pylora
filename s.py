@@ -96,38 +96,37 @@ class LoRaReceiver:
     def handle_interrupt(self):
         print("Interrupt detected!")
 
-        # Read the IRQ flags to check if RxDone flag is set
+        # Check if RxDone flag is set
         irq_flags = self.read_register(REG_IRQ_FLAGS)
-
         if irq_flags & 0x40:  # RxDone flag
-            # Clear all IRQ flags to prevent re-reading the same message
+            # Clear IRQ flags
             self.write_register(REG_IRQ_FLAGS, 0xFF)
 
-            # Set FIFO pointer to the beginning of the received packet
+            # Set FIFO address to the current received message location
             current_fifo_addr = self.read_register(0x10)  # REG_FIFO_RX_CURRENT_ADDR
             self.write_register(REG_FIFO_ADDR_PTR, current_fifo_addr)
 
-            # Get payload length
+            # Read the payload length from the received packet
             payload_length = self.read_register(REG_PAYLOAD_LENGTH)
+            print(f"Payload length: {payload_length}")
 
-            # Read the payload from FIFO
+            # Read message from FIFO
             message = bytearray()
             for _ in range(payload_length):
                 byte_received = self.read_register(REG_FIFO)
                 message.append(byte_received)
 
-            # Decode the message for display
+            # Decode message
             try:
-                message_str = message.decode('utf-8', errors='replace')  # Use 'replace' to handle invalid characters
+                message_str = message.decode('utf-8', errors='replace')
             except UnicodeDecodeError:
                 message_str = "<Invalid characters received>"
 
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"[{timestamp}] Message received: {message_str} (Length: {len(message)} bytes)")
 
-            # Clear the FIFO pointer after reading the message
+            # Clear FIFO pointer after reading
             self.write_register(REG_FIFO_ADDR_PTR, 0)
-
         else:
             print("No valid message detected.")
 
