@@ -17,7 +17,7 @@ REG_FRF_MID = 0x07
 REG_FRF_LSB = 0x08
 REG_IRQ_FLAGS = 0x12
 REG_FIFO_ADDR_PTR = 0x0D
-REG_PAYLOAD_LENGTH = 0x22
+REG_PAYLOAD_LENGTH = 0x13
 
 # Mode operasi LoRa
 MODE_LONG_RANGE_MODE = 0x80
@@ -103,15 +103,6 @@ class LoRaReceiver:
 
     def handle_interrupt(self):
         print("Interrupt detected!")
-
-        print("Register values:")
-        for address in range(0x00, 0x40):  # LoRa register addresses typically go from 0x00 to 0x3F
-            value = self.read_register(address)
-            if(value==123):
-                print(f"Register 0x{address:02X}: {value} (decimal)")
-
-        return
-
         # Read the IRQ flags to check if RxDone flag is set
         irq_flags = self.read_register(REG_IRQ_FLAGS)
 
