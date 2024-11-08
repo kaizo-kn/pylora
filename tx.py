@@ -63,12 +63,13 @@ class LoRaTransmitter:
             self.set_frequency(433.0)
             
             # Set power 17dBm
-            self.set_tx_power(100)
+            self.set_tx_power(17)
             
-            # Konfigurasi modem
-            self.write_register(0x1D, 0x72)  # BW=125kHz, CR=4/5
+            # Konfigurasi modem untuk BW=200kHz
+            self.write_register(0x1D, 0x92)  # BW=200kHz, CR=4/5
             self.write_register(0x1E, 0x74)  # SF=7, CRC on
             self.write_register(0x26, 0x04)  # Low Data Rate Optimize
+
 
             self.standby()
             return True
@@ -178,7 +179,7 @@ class LoRaTransmitter:
                     print(f"[{self.get_timestamp()}] Gagal mengirim")
                 
                 self.counter += 1
-                time.sleep(1)  # Adjust sleep for interval between messages
+                time.sleep(2)  # Adjust sleep for interval between messages
 
         except KeyboardInterrupt:
             print(f"\n[{self.get_timestamp()}] Program dihentikan")
