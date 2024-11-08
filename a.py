@@ -136,7 +136,7 @@ class LoRaTransmitter:
                 self.write_register(REG_FIFO, byte)
             
             # Set the payload length in the REG_PAYLOAD_LENGTH register
-            self.write_register(REG_PAYLOAD_LENGTH, payload_length)
+            self.write_register(REG_PAYLOAD_LENGTH, 39)
             
             # Start transmission by setting the device to TX mode
             self.write_register(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX)
