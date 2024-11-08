@@ -63,7 +63,7 @@ class LoRaTransmitter:
             self.set_frequency(433.0)
             
             # Set power 17dBm
-            self.set_tx_power(17)
+            self.set_tx_power(100)
             
             # Konfigurasi modem
             self.write_register(0x1D, 0x72)  # BW=125kHz, CR=4/5
