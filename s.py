@@ -107,7 +107,7 @@ class LoRaReceiver:
         print("Register values:")
         for address in range(0x00, 0x40):  # LoRa register addresses typically go from 0x00 to 0x3F
             value = self.read_register(address)
-            print(f"Register 0x{address:02X}: 0x{value:02X}")
+            print(f"Register 0x{address:02X}: {value} (decimal)")
 
         return
 
