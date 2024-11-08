@@ -95,26 +95,40 @@ class LoRaReceiver:
 
     def handle_interrupt(self):
         print("Interrupt terdeteksi!")
-        self.write_register(REG_FIFO_ADDR_PTR, 0)
-        payload_length = self.read_register(REG_PAYLOAD_LENGTH)
-        print(f"Panjang payload: {payload_length}")
 
-        message = bytearray()
-        for _ in range(payload_length):
-            byte_received = self.read_register(REG_FIFO)
-            message.append(byte_received)
+        # Clear interrupt flags and check the RxDone flag
+        irq_flags = self.read_register(REG_IRQ_FLAGS)
+        if irq_flags & 0x40:  # Check if RxDone flag is set
+            # Clear all IRQ flags
+            self.write_register(REG_IRQ_FLAGS, 0xFF)
 
-        # Menyimpan semua pesan tanpa terkecuali
-        self.received_messages.append(message)
+            # Get the number of bytes received
+            payload_length = self.read_register(0x13)  # REG_RX_NB_BYTES
+            
+            # Reset FIFO address pointer to the start of the message
+            self.write_register(REG_FIFO_ADDR_PTR, 0)
 
-        # Menampilkan pesan dalam format yang bisa dibaca
-        try:
-            message_str = message.decode('utf-8', errors='strict')  # Decode using UTF-8
-        except UnicodeDecodeError:
-            message_str = "<Invalid characters received>"
+            # Read the message from FIFO
+            message = bytearray()
+            for _ in range(payload_length):
+                byte_received = self.read_register(REG_FIFO)
+                message.append(byte_received)
 
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"[{timestamp}] Pesan diterima: {message_str} (Panjang: {len(message)} bytes)")
+            # Display the latest message only
+            try:
+                message_str = message.decode('utf-8', errors='strict')
+            except UnicodeDecodeError:
+                message_str = "<Invalid characters received>"
+
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f"[{timestamp}] Pesan diterima: {message_str} (Panjang: {len(message)} bytes)")
+
+            # Optionally store the latest message only
+            self.received_messages = [message]
+
+        else:
+            print("No valid message detected.")
+
 
     def close(self):
         self.running = False
