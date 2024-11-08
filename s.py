@@ -88,52 +88,40 @@ class LoRaReceiver:
         print("Menunggu pesan...")
 
         while self.running:
-            if GPIO.input(LORA_IRQ_PIN) == 1:  # Check if IRQ is high (message received)
+            if GPIO.input(LORA_IRQ_PIN) == 1:
                 self.handle_interrupt()
 
-            time.sleep(0.2)  # Shorter sleep for faster response to interrupts
+            time.sleep(1)  # Tidur sebentar untuk mengurangi beban CPU
 
     def handle_interrupt(self):
         print("Interrupt terdeteksi!")
+        self.write_register(REG_FIFO_ADDR_PTR, 0)
+        payload_length = self.read_register(REG_PAYLOAD_LENGTH)
+        print(f"Panjang payload: {payload_length}")
 
-        # Clear interrupt flags and check the RxDone flag
-        irq_flags = self.read_register(REG_IRQ_FLAGS)
-        if irq_flags & 0x40:  # Check if RxDone flag is set
-            # Clear all IRQ flags
-            self.write_register(REG_IRQ_FLAGS, 0xFF)
+        message = bytearray()
+        for _ in range(payload_length):
+            byte_received = self.read_register(REG_FIFO)
+            message.append(byte_received)
 
-            # Get the number of bytes received
-            payload_length = self.read_register(0x13)  # REG_RX_NB_BYTES
-            
-            # Reset FIFO address pointer to the start of the message
-            self.write_register(REG_FIFO_ADDR_PTR, 0)
+        # Menyimpan semua pesan tanpa terkecuali
+        self.received_messages.append(message)
 
-            # Read the message from FIFO
-            message = bytearray()
-            for _ in range(payload_length):
-                byte_received = self.read_register(REG_FIFO)
-                message.append(byte_received)
+        # Menampilkan pesan dalam format yang bisa dibaca
+        try:
+            message_str = message.decode('utf-8', errors='strict')  # Decode using UTF-8
+        except UnicodeDecodeError:
+            message_str = "<Invalid characters received>"
 
-            # Display the latest message only
-            try:
-                message_str = message.decode('utf-8', errors='strict')
-            except UnicodeDecodeError:
-                message_str = "<Invalid characters received>"
-
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            print(f"[{timestamp}] Pesan diterima: {message_str} (Panjang: {len(message)} bytes)")
-
-            # Optionally store the latest message only
-            self.received_messages = [message]
-
-        else:
-            print("No valid message detected.")
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[{timestamp}] Pesan diterima: {message_str} (Panjang: {len(message)} bytes)")
 
     def close(self):
         self.running = False
         if self.spi:
             self.spi.close()
         GPIO.cleanup()
+
 
 def main():
     lora = None
