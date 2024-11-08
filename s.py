@@ -94,40 +94,43 @@ class LoRaReceiver:
             time.sleep(0.2)  # Shorter sleep for faster response to interrupts
 
     def handle_interrupt(self):
-        print("Interrupt terdeteksi!")
+        print("Interrupt detected!")
 
-        # Clear interrupt flags and check the RxDone flag
+        # Read the IRQ flags to check if RxDone flag is set
         irq_flags = self.read_register(REG_IRQ_FLAGS)
-        if irq_flags & 0x40:  # Check if RxDone flag is set
-            # Clear all IRQ flags
+
+        if irq_flags & 0x40:  # RxDone flag
+            # Clear all IRQ flags to prevent re-reading the same message
             self.write_register(REG_IRQ_FLAGS, 0xFF)
 
-            # Get the number of bytes received
-            payload_length = self.read_register(0x13)  # REG_RX_NB_BYTES
-            
-            # Reset FIFO address pointer to the start of the message
-            self.write_register(REG_FIFO_ADDR_PTR, 0)
+            # Set FIFO pointer to the beginning of the received packet
+            current_fifo_addr = self.read_register(0x10)  # REG_FIFO_RX_CURRENT_ADDR
+            self.write_register(REG_FIFO_ADDR_PTR, current_fifo_addr)
 
-            # Read the message from FIFO
+            # Get payload length
+            payload_length = self.read_register(REG_PAYLOAD_LENGTH)
+
+            # Read the payload from FIFO
             message = bytearray()
             for _ in range(payload_length):
                 byte_received = self.read_register(REG_FIFO)
                 message.append(byte_received)
 
-            # Display the latest message only
+            # Decode the message for display
             try:
-                message_str = message.decode('utf-8', errors='strict')
+                message_str = message.decode('utf-8', errors='replace')  # Use 'replace' to handle invalid characters
             except UnicodeDecodeError:
                 message_str = "<Invalid characters received>"
 
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            print(f"[{timestamp}] Pesan diterima: {message_str} (Panjang: {len(message)} bytes)")
+            print(f"[{timestamp}] Message received: {message_str} (Length: {len(message)} bytes)")
 
-            # Optionally store the latest message only
-            self.received_messages = [message]
+            # Clear the FIFO pointer after reading the message
+            self.write_register(REG_FIFO_ADDR_PTR, 0)
 
         else:
             print("No valid message detected.")
+
 
     def close(self):
         self.running = False
