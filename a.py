@@ -162,7 +162,7 @@ class LoRaTransmitter:
         try:
             while True:
                 timestamp = self.get_timestamp()
-                message = f"Pesan ke- {self.counter} dari Lora Transmitter"
+                message = f"{self.counter} pesan terkirim dari Lora Transmitter"
                 print(f"\n[{timestamp}] Mengirim: {message}")
                 
                 if self.send_message(message):
