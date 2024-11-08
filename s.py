@@ -109,7 +109,7 @@ class LoRaReceiver:
 
             # Get payload length
             payload_length = self.read_register(REG_PAYLOAD_LENGTH)
-            payload_length = 3
+            payload_length = 39
 
             # Read the payload from FIFO
             message = bytearray()
