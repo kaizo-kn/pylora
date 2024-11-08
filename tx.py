@@ -156,35 +156,6 @@ class LoRaTransmitter:
             return False
 
 
-    def transmit(self):
-        print(f"[{self.get_timestamp()}] LoRa Transmitter aktif. Tekan Ctrl+C untuk berhenti.")
-        try:
-            while True:
-                timestamp = self.get_timestamp()
-                message = f"{self.counter} pesan terkirim dari Lora Transmitter"
-                print(f"\n[{timestamp}] Mengirim: {message}")
-                
-                # Encode message to UTF-8
-                if isinstance(message, str):
-                    message = message.encode('utf-8')  # Encode to UTF-8 bytes
-                
-                # Set payload length based on the byte-length of the encoded message
-                payload_length = len(message)
-                self.write_register(REG_PAYLOAD_LENGTH, 37)
-                
-                # Send the message
-                if self.send_message(message):
-                    print(f"[{self.get_timestamp()}] Pesan terkirim payload: {payload_length}!")
-                else:
-                    print(f"[{self.get_timestamp()}] Gagal mengirim")
-                
-                self.counter += 1
-                time.sleep(1)  # Adjust sleep for interval between messages
-
-        except KeyboardInterrupt:
-            print(f"\n[{self.get_timestamp()}] Program dihentikan")
-
-
 def main():
     lora = LoRaTransmitter()
     try:
