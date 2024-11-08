@@ -175,7 +175,7 @@ class LoRaTransmitter:
                 
                 # Send the message
                 if self.send_message(message):
-                    print(f"[{self.get_timestamp()}] Pesan terkirim!")
+                    print(f"[{self.get_timestamp()}] Pesan terkirim payload: {payload_length}!")
                 else:
                     print(f"[{self.get_timestamp()}] Gagal mengirim")
                 
