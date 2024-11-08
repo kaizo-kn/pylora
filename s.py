@@ -91,7 +91,7 @@ class LoRaReceiver:
             if GPIO.input(LORA_IRQ_PIN) == 1:  # Check if IRQ is high (message received)
                 self.handle_interrupt()
 
-            time.sleep(0.1)  # Shorter sleep for faster response to interrupts
+            time.sleep(0.2)  # Shorter sleep for faster response to interrupts
 
     def handle_interrupt(self):
         print("Interrupt terdeteksi!")
@@ -128,9 +128,6 @@ class LoRaReceiver:
 
         else:
             print("No valid message detected.")
-
-
-
 
     def close(self):
         self.running = False

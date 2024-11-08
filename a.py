@@ -148,7 +148,7 @@ class LoRaTransmitter:
                     # Clear all IRQ flags after successful transmission
                     self.write_register(REG_IRQ_FLAGS, 0xFF)
                     return True
-                time.sleep(0.1)
+                time.sleep(0.5)
             
             return False
 
