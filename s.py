@@ -96,25 +96,25 @@ class LoRaReceiver:
     def handle_interrupt(self):
         print("Interrupt terdeteksi!")
 
-        # Clear interrupt flags
+        # Clear interrupt flags and check the RxDone flag
         irq_flags = self.read_register(REG_IRQ_FLAGS)
-        if irq_flags & 0x40:  # Check RxDone flag
-            self.write_register(REG_IRQ_FLAGS, 0xFF)  # Clear all IRQ flags
+        if irq_flags & 0x40:  # Check if RxDone flag is set
+            # Clear all IRQ flags
+            self.write_register(REG_IRQ_FLAGS, 0xFF)
 
-            # Get the number of received bytes
+            # Get the number of bytes received
             payload_length = self.read_register(0x13)  # REG_RX_NB_BYTES
             
-            # Reset FIFO address pointer for reading
+            # Reset FIFO address pointer to the start of the message
             self.write_register(REG_FIFO_ADDR_PTR, 0)
 
+            # Read the message from FIFO
             message = bytearray()
             for _ in range(payload_length):
                 byte_received = self.read_register(REG_FIFO)
                 message.append(byte_received)
 
-            self.received_messages.append(message)
-
-            # Decode and display the message
+            # Display the latest message only
             try:
                 message_str = message.decode('utf-8', errors='strict')
             except UnicodeDecodeError:
@@ -123,8 +123,12 @@ class LoRaReceiver:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"[{timestamp}] Pesan diterima: {message_str} (Panjang: {len(message)} bytes)")
 
+            # Optionally store the latest message only
+            self.received_messages = [message]
+
         else:
             print("No valid message detected.")
+
 
 
 
